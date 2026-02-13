@@ -21,46 +21,43 @@
         }
 
         .text-container {
-            position: absolute; top: 30%; left: 50%;
+            position: absolute; top: 25%; left: 50%;
             transform: translate(-50%, -50%); text-align: center;
             z-index: 10; width: 100%; pointer-events: none;
             transition: opacity 2s ease-in-out; opacity: 0; display: none;
         }
 
-        /* Chữ được tách dòng để hiển thị tốt nhất trên Mobile */
         h1 {
-            color: #fff;
-            font-size: 10vw; 
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 15px #fff, 0 0 30px #ffd700;
-            line-height: 1.3;
-            margin: 0;
+            color: #fff; font-size: 10vw; text-transform: uppercase;
+            letter-spacing: 2px; text-shadow: 0 0 15px #fff, 0 0 30px #ffd700;
+            line-height: 1.3; margin: 0;
         }
 
         @media (min-width: 768px) { h1 { font-size: 3.5rem; } }
 
+        /* ĐIỀU CHỈNH DÒNG CHỮ CUỐI CAO HƠN */
         #finalMessage {
-            position: absolute;
-            bottom: -200px;
+            position: absolute; 
+            bottom: -200px; /* Vị trí bắt đầu dưới màn hình */
             left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
+            transform: translateX(-50%); 
+            width: 90%; 
             text-align: center;
-            color: #ffd700;
-            font-size: 1.4rem;
+            color: #ffd700; 
+            font-size: 1.3rem; 
             font-style: italic;
             text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
-            opacity: 0;
-            z-index: 15;
-            pointer-events: none;
+            opacity: 0; 
+            z-index: 15; 
+            pointer-events: none; 
             line-height: 1.6;
         }
 
         .show-final {
             transition: opacity 3s ease-in-out, transform 12s cubic-bezier(0.1, 0.5, 0.2, 1);
             opacity: 1 !important;
-            transform: translate(-50%, -400px) !important;
+            /* Thay đổi từ -400px thành -500px để đẩy chữ lên cao hơn nữa */
+            transform: translate(-50%, -500px) !important; 
         }
     </style>
 </head>
@@ -72,6 +69,7 @@
 
     <audio id="bgMusic" loop preload="auto" playsinline>
         <source src="HPNY.mp3" type="audio/mpeg">
+        <source src="hpny.mp3" type="audio/mpeg">
     </audio>
 
     <div class="text-container" id="textMain">
@@ -83,15 +81,26 @@
     </div>
     
     <canvas id="canvas"></canvas>
-
-    <script>
+<script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-const music = document.getElementById('bgMusic');
+        const music = document.getElementById('bgMusic');
         const startBtn = document.getElementById('startBtn');
         const overlay = document.getElementById('overlay');
         const textMain = document.getElementById('textMain');
         const finalMessage = document.getElementById('finalMessage');
+
+        // Hàm phát nhạc "cưỡng bức" cho Mobile
+        function forcePlay() {
+            music.volume = 1.0;
+            const playPromise = music.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                    // Nếu lỗi, thử lại khi người dùng chạm vào bất cứ đâu
+                    document.addEventListener('touchstart', () => music.play(), { once: true });
+                });
+            }
+        }
 
         let stars = [], buildings = [], fireworks = [], particles = [];
         let fireworkCount = 0;
@@ -110,7 +119,7 @@ const music = document.getElementById('bgMusic');
             for (let i = 0; i < window.innerWidth; i += spacing) {
                 let h = Math.random() * 100 + 60;
                 let b = { x: i, w: spacing - 8, h: h, windows: [] };
-                for (let wy = window.innerHeight - h + 10; wy < window.innerHeight - 10; wy += 18) {
+                for (let wy = window.innerHeight - h + 15; wy < window.innerHeight - 10; wy += 18) {
                     for (let wx = i + 10; wx < i + spacing - 15; wx += 12) {
                         b.windows.push({x: wx, y: wy, on: Math.random() > 0.4});
                     }
@@ -141,9 +150,9 @@ const music = document.getElementById('bgMusic');
             constructor(x, isSpecial = false) {
                 this.x = x || Math.random() * canvas.width;
                 this.y = canvas.height;
-                this.targetY = Math.random() * (canvas.height * 0.4);
+                this.targetY = Math.random() * (canvas.height * 0.45);
                 this.speed = 4;
-                this.color = isSpecial ? "#ffd700" : `hsl(${Math.random() * 360}, 100%, 65%)`;
+this.color = isSpecial ? "#ffd700" : `hsl(${Math.random() * 360}, 100%, 65%)`;
                 this.isSpecial = isSpecial;
                 this.dead = false;
             }
@@ -157,7 +166,7 @@ const music = document.getElementById('bgMusic');
         class Particle {
             constructor(x, y, color, angle, speed, isGold = false) {
                 this.x = x; this.y = y; this.color = color;
-this.angle = angle; this.speed = speed;
+                this.angle = angle; this.speed = speed;
                 this.friction = 0.96; this.gravity = 0.08;
                 this.alpha = 1;
                 this.decay = isGold ? 0.005 : 0.012;
@@ -212,14 +221,13 @@ this.angle = angle; this.speed = speed;
             for(let i=0; i<35; i++) {
                 setTimeout(() => {
                     fireworks.push(new Firework(Math.random()*canvas.width, Math.random()>0.6));
-                }, i * 100);
+                }, i * 110);
             }
         }
 
-        // Bắt đầu
         resize();
         for (let i = 0; i < 120; i++) {
-            stars.push({
+stars.push({
                 x: Math.random() * window.innerWidth,
                 y: Math.random() * window.innerHeight * 0.8,
                 size: Math.random() * 1.2,
@@ -233,17 +241,8 @@ this.angle = angle; this.speed = speed;
             textMain.style.display = 'block';
             setTimeout(() => textMain.style.opacity = '1', 100);
             
-            // Xử lý nhạc quyết liệt hơn cho Mobile
-const playPromise = music.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    console.log("Music started!");
-                }).catch(error => {
-                    console.log("Auto-play was prevented. Trying again on next touch.");
-                    // Fallback: Phát lại khi chạm vào màn hình bất cứ đâu
-                    document.body.addEventListener('touchstart', () => music.play(), {once: true});
-                });
-            }
+            // Ép nhạc phát
+            forcePlay();
             
             activeInterval = setInterval(() => {
                 fireworkCount++;
